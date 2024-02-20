@@ -5,7 +5,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 	"github.com/liamawhite/tsk/pkg/task"
-	"github.com/samber/lo"
 )
 
 func NewModel() tea.Model {
@@ -81,25 +80,4 @@ func (m Model) View() string {
 	}
 }
 
-func taskRow(t task.Task, _ int) table.Row {
-	return table.Row{t.Name}
-}
 
-func newTable(tasks []task.Task) table.Model {
-	return table.New(
-		table.WithColumns([]table.Column{
-			{Title: "Task", Width: 15},
-		}),
-		table.WithRows(lo.Map(tasks, taskRow)),
-	)
-}
-
-func newEditor(task *task.Task) *huh.Form {
-	return huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title("task").
-				Key("task"),
-		),
-	)
-}
