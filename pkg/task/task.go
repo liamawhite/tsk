@@ -1,9 +1,10 @@
 package task
 
 import (
-    "time"
-    
-    "github.com/teambition/rrule-go"
+	"time"
+
+	"github.com/liamawhite/jsondb"
+	"github.com/teambition/rrule-go"
 )
 
 type Status int
@@ -16,6 +17,22 @@ const (
 	Done
 )
 
+func (s Status) String() string {
+	switch s {
+	case Backlog:
+		return "Backlog"
+	case Blocked:
+		return "Blocked"
+	case Paused:
+		return "Paused"
+	case InProgress:
+		return "In Progress"
+	case Done:
+		return "Done"
+	}
+	return "Unknown"
+}
+
 type Task struct {
 	Id string
 
@@ -23,9 +40,39 @@ type Task struct {
 	Notes  string
 	Status Status
 
-	Due       time.Time
-	Scheduled time.Time
-    Recurrence rrule.RRule
+	Due        time.Time
+	Scheduled  time.Time
+	Recurrence rrule.RRule
 
-    ProjectId *string
+	ProjectId *string
+}
+
+// This is pass-through for now, but expect this to also support caching and additional list filtering in the future.
+func NewClient(persistenceDir string) (*Client, error) {
+	db, err := jsondb.NewFS[Task](persistenceDir)
+	if err != nil {
+		return nil, err
+	}
+	return &Client{db: db}, nil
+}
+
+type Client struct {
+	db jsondb.Client[Task]
+}
+
+func (c *Client) Get(id string) (Task, error) {
+    return c.db.Read(id)
+}
+
+// Idempotent based on the task's ID.
+func (c *Client) Put(task Task) error {
+    return c.db.Write(task.Id, task)
+}
+
+func (c *Client) Delete(id string) error {
+    return c.db.Delete(id)
+}
+
+func (c *Client) List() ([]Task, error) {
+    return c.db.List()
 }

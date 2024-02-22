@@ -6,6 +6,8 @@ require (
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/huh v0.3.0
+	github.com/google/uuid v1.6.0
+	github.com/liamawhite/jsondb v0.2.0
 	github.com/samber/lo v1.39.0
 	github.com/spf13/cobra v1.8.0
 	github.com/teambition/rrule-go v1.8.2
