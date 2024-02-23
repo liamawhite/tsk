@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -37,6 +38,7 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    slog.Debug("received msg", "model", name, "msg", msg, "msgType", fmt.Sprintf("%T", msg))
 	// Stop short if we're quitting
     if msg, ok := msg.(tea.KeyMsg); ok {
         if key.Matches(msg, m.keys.Quit) {

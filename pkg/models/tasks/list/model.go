@@ -50,12 +50,8 @@ func (m Model) Refresh() tea.Cmd {
     return m.lister
 }
 
-func (m Model) SelectedTask() task.Task {
-	row := m.table.SelectedRow()
-	return task.Task{
-		Id:   row[1],
-		Name: row[0],
-	}
+func (m Model) SelectedTask() string {
+	return m.table.SelectedRow()[2] // id is the third column, but this could change...
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -67,9 +63,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Add):
 			return m, func() tea.Msg { return AddMsg{} }
         case key.Matches(msg, m.keys.Edit):
-            return m, func() tea.Msg { return EditMsg{Id: m.SelectedTask().Id} }
+            return m, func() tea.Msg { return EditMsg{Id: m.SelectedTask()} }
         case key.Matches(msg, m.keys.Delete):
-            return m, m.deleter(m.SelectedTask().Id)    
+            return m, m.deleter(m.SelectedTask())    
 		}
 	}
 
@@ -107,11 +103,12 @@ func (m Model) View() string {
 func buildTable(tasks []task.Task) table.Model {
 	return table.New(
 		table.WithColumns([]table.Column{
-			{"Task", 20},
+            {"Status", 15},
+            {"Task", 20},
 			{"Id", 0},
 		}),
 		table.WithRows(lo.Map(tasks, func(t task.Task, _ int) table.Row {
-			return table.Row{t.Name, t.Id}
+			return table.Row{task.Statuses[t.Status], t.Name, t.Id}
 		})),
 	)
 }

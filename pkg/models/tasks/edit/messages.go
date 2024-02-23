@@ -52,6 +52,13 @@ type SubmitMsg struct {
     Error error
 }
 
+func (s SubmitMsg) String() string {
+    if s.Error != nil {
+        return fmt.Sprintf("{Error: %v}",s.Error)
+    }
+    return fmt.Sprintf("{Task: %v}", s.Task.Id)
+}
+
 func NewPersister(client *task.Client) func(task.Task) tea.Cmd {
     return func(t task.Task) tea.Cmd {
         return func() tea.Msg {

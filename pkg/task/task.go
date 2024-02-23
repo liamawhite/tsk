@@ -17,20 +17,17 @@ const (
 	Done
 )
 
+var Statuses = map[Status]string{
+    Backlog:    "Backlog",
+    Blocked:    "Blocked",
+    Paused:     "Paused",
+    InProgress: "In Progress",
+    Done:       "Done",
+}
+
+
 func (s Status) String() string {
-	switch s {
-	case Backlog:
-		return "Backlog"
-	case Blocked:
-		return "Blocked"
-	case Paused:
-		return "Paused"
-	case InProgress:
-		return "In Progress"
-	case Done:
-		return "Done"
-	}
-	return "Unknown"
+	return Statuses[s]
 }
 
 type Task struct {

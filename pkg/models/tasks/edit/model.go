@@ -3,10 +3,12 @@ package edit
 import (
 	"fmt"
 	"log/slog"
+	"sort"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 	"github.com/liamawhite/tsk/pkg/task"
+	"github.com/samber/lo"
 )
 
 const name = "tasks/edit"
@@ -43,26 +45,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.form.Init()
 	}
 
-	// If the form is done, we can write to the database, then broadcast 
+	// If the form is done, we can write to the database, then broadcast
 	if m.form.State == huh.StateCompleted {
-		slog.Info("form completed", "model", name)    
+		slog.Info("form completed", "model", name)
 		return m, m.persister(m.task())
 	}
 
-    // If the form is aborted, we broadcast the abort message
+	// If the form is aborted, we broadcast the abort message
 	if m.form.State == huh.StateAborted {
 		slog.Info("form aborted", "model", name)
-        return m, Abort(nil)
+		return m, Abort(nil)
 	}
 
-    return m.routing(msg)
+	return m.routing(msg)
 }
 
 func (m Model) task() task.Task {
-    return task.Task{
-        Id:   m.id,
-        Name: m.form.GetString(taskKey),
-    }
+
+	return task.Task{
+		Id:     m.id,
+		Name:   m.form.GetString(taskKey),
+		Notes:  m.form.GetString(notesKey),
+		Status: m.form.Get(statusKey).(task.Status),
+	}
 }
 
 func (m Model) routing(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -85,14 +90,31 @@ func (m Model) View() string {
 }
 
 var (
-	idKey   = "id"
-	taskKey = "task"
+	taskKey   = "task"
+	statusKey = "status"
+	notesKey  = "notes"
 )
 
 func buildForm(t task.Task) *huh.Form {
 	nameInput := huh.NewInput().Key(taskKey).Title("Task").Value(&t.Name)
+	notesInput := huh.NewText().Key(notesKey).Title("Notes").Value(&t.Notes)
+
+    // Sort statuses so they are in the correct order every time
+	statuses := lo.Entries(task.Statuses)
+	sort.Slice(statuses, func(i, j int) bool {
+		return statuses[i].Key < statuses[j].Key
+	})
+
+	statusInput := huh.NewSelect[task.Status]().
+		Key(statusKey).
+		Title("Status").
+		Options(
+			lo.Map(statuses, func(e lo.Entry[task.Status, string], _ int) huh.Option[task.Status] {
+				return huh.NewOption(e.Value, e.Key)
+			})...,
+		).Value(&t.Status)
 
 	return huh.NewForm(
-		huh.NewGroup(nameInput),
-	)
+		huh.NewGroup(nameInput, statusInput, notesInput),
+	).WithShowErrors(true)
 }
