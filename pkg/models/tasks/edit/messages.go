@@ -9,20 +9,20 @@ import (
 	"github.com/liamawhite/tsk/pkg/task"
 )
 
-
-type PopulatorMsg struct {
+// This is an internal msg that should only be consumed by this model
+type populatorMsg struct {
 	Task  task.Task
 	Error error
 }
 
-func (p PopulatorMsg) String() string {
+func (p populatorMsg) String() string {
 	return fmt.Sprintf("PopulatorMsg{Task: %v}", p.Task.Name)
 }
 
 func NewAddPopulator() tea.Cmd {
 	return func() tea.Msg {
 		slog.Info("editing a new task", "model", name)
-		return PopulatorMsg{Task: task.Task{Id: uuid.New().String()}, Error: nil}
+		return populatorMsg{Task: task.Task{Id: uuid.New().String()}, Error: nil}
 	}
 }
 
@@ -30,7 +30,7 @@ func NewEditPopulator(client *task.Client, id string) tea.Cmd {
 	return func() tea.Msg {
         slog.Info("editing an existing task", "model", name, "id", id)
 		task, err := client.Get(id)
-		return PopulatorMsg{Task: task, Error: err}
+		return populatorMsg{Task: task, Error: err}
 	}
 }
 

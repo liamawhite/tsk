@@ -36,7 +36,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	slog.Debug("received msg", "model", name, "msg", msg, "msgType", fmt.Sprintf("%T", msg))
 
 	// Populate task is only ever called on Init so we can safely call form init here
-	if msg, ok := msg.(PopulatorMsg); ok {
+	if msg, ok := msg.(populatorMsg); ok {
 		if msg.Error != nil {
 			return m, Abort(msg.Error)
 		}
