@@ -102,8 +102,8 @@ func (m Model) View() string {
 func buildTable(tasks []task.Task) table.Model[task.Task] {
 	return table.New[task.Task](
 		table.WithColumns[task.Task]([]table.Column{
-			{"Status", 15},
-			{"Task", 20},
+            {Title: "Status", Width: 15},
+            {Title: "Task", Width: 20},
 		}),
 		table.WithRows(lo.Map(tasks, func(t task.Task, _ int) table.Row[task.Task] {
 			return table.Row[task.Task]{Id: t.Id, Data: t, Renderer: func(t task.Task) []string {

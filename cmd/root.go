@@ -13,7 +13,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "tsk",
+         	Use: "tsk",
 	RunE: func(cmd *cobra.Command, args []string) error {
         f, err := setupLogging(slog.LevelDebug)
         if err != nil {
