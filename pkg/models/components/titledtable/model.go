@@ -1,22 +1,26 @@
 package titledtable
 
 import (
+	"log/slog"
+
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/liamawhite/tsk/pkg/models/components/table"
 )
 
 type Option[T any] func(*Model[T])
 
 type Model[T any] struct {
-    // Deliberately not embedding the table.Model because theres are no good ways
-    // to avoid extend the options for the table.Model
+    // Deliberately not embedding the table.Model because AFAICT theres no
+    // good way to extend the options for the table.Model
     table table.Model[T]
 
     title string
+    styles Styles[T]
 }
 
 func New[T any](table table.Model[T], opts ...Option[T]) Model[T] {
-    m := Model[T]{table: table}
+    m := Model[T]{table: table, styles: DefaultStyles[T]()}
     for _, opt := range opts {
         opt(&m)
     }
@@ -26,6 +30,12 @@ func New[T any](table table.Model[T], opts ...Option[T]) Model[T] {
 func WithTitle[T any](title string) Option[T] {
     return func(m *Model[T]) {
         m.title = title
+    }
+}
+
+func WithTitleStyle[T any](styles Styles[T]) Option[T] {
+    return func(m *Model[T]) {
+        m.styles = styles
     }
 }
 
@@ -52,5 +62,10 @@ func (m Model[T]) View() string {
     if m.title == "" {
         return m.table.View()
     }
-    return m.title + "\n" + m.table.View()
+
+    slog.Debug("rendering titled table", "width", m.table.Width())
+    return lipgloss.JoinVertical(lipgloss.Left,
+        m.styles.Title.Width(m.table.Width()).Render(m.title),
+        m.table.View(),
+    )
 }

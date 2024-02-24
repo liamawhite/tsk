@@ -16,20 +16,20 @@ func (m Model) View() string {
 }
 
 const (
-    colStatus = "Status"
-    colTask = "Task"
+	colStatus = "Status"
+	colTask   = "Task"
 )
 
-func buildTable(tasks []task.Task) titledtable.Model[task.Task] {
-    tbl := table.New[task.Task](
+func (m Model) buildTable() titledtable.Model[task.Task] {
+	tbl := table.New[task.Task](
 		table.WithColumns[task.Task]([]table.Column{
 			{Title: colStatus, Width: 1},
 			{Title: colTask, Width: 20},
 		}),
 		table.WithHiddenHeaders[task.Task](true),
-		table.WithRows(lo.Map(tasks, func(t task.Task, _ int) table.Row[task.Task] {
+		table.WithRows(lo.Map(m.tasks, func(t task.Task, _ int) table.Row[task.Task] {
 			return table.Row[task.Task]{Id: t.Id, Data: t, Renderer: func(t task.Task) []string {
-				return []string{statusEmoji(t.Status), t.Name}
+				return []string{statusIcon(t.Status), t.Name}
 			}}
 		})),
 		table.WithSort(func(a task.Task, b task.Task) bool {
@@ -40,44 +40,54 @@ func buildTable(tasks []task.Task) titledtable.Model[task.Task] {
 			Cell:     conditionalFormat,
 			Selected: table.DefaultStyles[task.Task]().Selected,
 		}),
+        table.WithWidth[task.Task](m.width),
+        table.WithHeight[task.Task](m.height),
 	)
-    return titledtable.New[task.Task](tbl, titledtable.WithTitle[task.Task]("Tasks"))
+	return titledtable.New[task.Task](tbl,
+		titledtable.WithTitle[task.Task]("Tasks"),
+		titledtable.WithTitleStyle[task.Task](titledtable.Styles[task.Task]{
+			Title: lipgloss.NewStyle().
+				Margin(0, 1).
+				Border(lipgloss.NormalBorder(), false, false, true, false).
+				BorderForeground(lipgloss.Color(theme.Subtext0().Hex)),
+		}),
+	)
 }
 
 func conditionalFormat(t task.Task, column string) lipgloss.Style {
-    common := lipgloss.NewStyle().Padding(0, 1)
-    if column == colStatus {
-        common = common.Align(lipgloss.Center)
-    }
+	common := lipgloss.NewStyle().Padding(0, 1)
+	if column == colStatus {
+		common = common.Align(lipgloss.Center)
+	}
 
-    switch t.Status {
-    case task.Blocked:
-        return common.Foreground(lipgloss.Color(theme.Red().Hex))
-    case task.Paused:
-        return common.Foreground(lipgloss.Color(theme.Subtext1().Hex)).Faint(true)
-    case task.InProgress:
-        return common.Foreground(lipgloss.Color(theme.Green().Hex))
-    case task.Done:
-        local := common.Faint(true)
-        if column == colStatus {
-            return local.Foreground(lipgloss.Color(theme.Green().Hex))
-        }
-        return local.Foreground(lipgloss.Color(theme.Subtext0().Hex)).Strikethrough(true)
-    default:
-        return common.Foreground(lipgloss.Color(theme.Text().Hex))
-}
+	switch t.Status {
+	case task.Blocked:
+		return common.Foreground(lipgloss.Color(theme.Red().Hex))
+	case task.Paused:
+		return common.Foreground(lipgloss.Color(theme.Subtext1().Hex)).Faint(true)
+	case task.InProgress:
+		return common.Foreground(lipgloss.Color(theme.Green().Hex))
+	case task.Done:
+		local := common.Faint(true)
+		if column == colStatus {
+			return local.Foreground(lipgloss.Color(theme.Green().Hex))
+		}
+		return local.Foreground(lipgloss.Color(theme.Subtext0().Hex)).Strikethrough(true)
+	default:
+		return common.Foreground(lipgloss.Color(theme.Text().Hex))
+	}
 }
 
-func statusEmoji(s task.Status) string {
+func statusIcon(s task.Status) string {
 	switch s {
 	case task.Backlog:
-		return ""
+		return "󰁍"
 	case task.Blocked:
 		return "󰹆"
 	case task.Paused:
 		return "󰏤"
 	case task.InProgress:
-		return "󰁜"
+		return "󰁔"
 	case task.Done:
 		return "✓"
 	default:

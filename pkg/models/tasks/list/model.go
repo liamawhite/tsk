@@ -14,16 +14,23 @@ import (
 const name = "tasks/list"
 
 func New(lister tea.Cmd, deleter func(string) tea.Cmd) Model {
-	return Model{
+    m := Model{
+        // hardcode these for now
+        width:  80,
+        height: 20,
+
 		keys:    keyMap,
 		tasks:   []task.Task{},
-		table:   buildTable([]task.Task{}),
 		lister:  lister,
 		deleter: deleter,
 	}
+    m.table = m.buildTable()
+    return m
 }
 
 type Model struct {
+    width int
+    height int
 	keys KeyMap
 
 	tasks []task.Task
@@ -74,7 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Indicates that we have a new list of tasks to display
 	case ListTasksMsg:
 		m.tasks = msg.tasks
-		m.table = buildTable(m.tasks)
+		m.table = m.buildTable()
 		return m, nil
 
 	// If we have deleted a task or the editor submitted a new one then fetch the new list of tasks
