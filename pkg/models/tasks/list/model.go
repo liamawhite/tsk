@@ -56,8 +56,8 @@ func (m Model) Refresh() tea.Cmd {
 	return m.client.List()
 }
 
-func (m Model) SelectedTask() string {
-	return m.table.SelectedRow().Id
+func (m Model) SelectedTask() task.Task {
+	return m.table.SelectedRow().Data
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -66,12 +66,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Handle list wide navigation
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
-		case key.Matches(msg, m.keys.Add):
-			return m, newAddMsg() 
+		case key.Matches(msg, m.keys.New):
+			return m, newMsg() 
 		case key.Matches(msg, m.keys.Edit):
-            return m, newEditMsg(m.SelectedTask())  
+            return m, editMsg(m.SelectedTask().Id)  
 		case key.Matches(msg, m.keys.Delete):
-			return m, m.client.Delete(m.SelectedTask())
+			return m, m.client.Delete(m.SelectedTask().Id)
+        
+        // Handle status changes
+        case key.Matches(msg, m.keys.Todo):
+            return m, m.setSelectedStatus(task.Todo)
+        case key.Matches(msg, m.keys.Blocked):
+            return m, m.setSelectedStatus(task.Blocked)
+        case key.Matches(msg, m.keys.Paused):
+            return m, m.setSelectedStatus(task.Paused)
+        case key.Matches(msg, m.keys.Active):   
+            return m, m.setSelectedStatus(task.Active)
+        case key.Matches(msg, m.keys.Complete): 
+            return m, m.setSelectedStatus(task.Complete)
+        case key.Matches(msg, m.keys.Abandoned):
+            return m, m.setSelectedStatus(task.Abandoned)
+            
+            
+            
 		}
 	}
 
@@ -91,6 +108,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m.routing(msg)
+}
+
+func (m Model) setSelectedStatus(status task.Status) tea.Cmd {
+    t := m.SelectedTask()
+    t.Status = status
+    return m.client.Put(t)
 }
 
 func (m Model) routing(msg tea.Msg) (tea.Model, tea.Cmd) {

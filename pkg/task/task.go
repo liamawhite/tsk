@@ -9,21 +9,22 @@ import (
 type Status int
 
 const (
-	Backlog Status = iota
+	Todo Status = iota
 	Blocked
 	Paused
-	InProgress
-	Done
+	Active
+	Complete
+	Abandoned
 )
 
 var Statuses = map[Status]string{
-    Backlog:    "Backlog",
-    Blocked:    "Blocked",
-    Paused:     "Paused",
-    InProgress: "In Progress",
-    Done:       "Done",
+	Todo:      "Todo",
+	Blocked:   "Blocked",
+	Paused:    "Paused",
+	Active:    "Active",
+	Complete:  "Complete",
+	Abandoned: "Abandoned",
 }
-
 
 func (s Status) String() string {
 	return Statuses[s]
@@ -42,4 +43,3 @@ type Task struct {
 
 	ProjectId *string
 }
-

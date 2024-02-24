@@ -66,14 +66,20 @@ func conditionalFormat(t task.Task, column string) lipgloss.Style {
 		return common.Foreground(lipgloss.Color(theme.Red().Hex))
 	case task.Paused:
 		return common.Foreground(lipgloss.Color(theme.Subtext1().Hex)).Faint(true)
-	case task.InProgress:
+	case task.Active:
 		return common.Foreground(lipgloss.Color(theme.Green().Hex))
-	case task.Done:
-		local := common.Faint(true)
+	case task.Complete:
+		local := common.Faint(true).Foreground(lipgloss.Color(theme.Subtext0().Hex))
 		if column == colStatus {
-			return local.Foreground(lipgloss.Color(theme.Green().Hex))
+			return local
 		}
-		return local.Foreground(lipgloss.Color(theme.Subtext0().Hex)).Strikethrough(true)
+		return local.Strikethrough(true)
+    case task.Abandoned:
+        local := common.Foreground(lipgloss.Color(theme.Overlay1().Hex)).Faint(true)
+        if column == colStatus {
+            return local
+        }
+        return local.Strikethrough(true)
 	default:
 		return common.Foreground(lipgloss.Color(theme.Text().Hex))
 	}
@@ -81,16 +87,18 @@ func conditionalFormat(t task.Task, column string) lipgloss.Style {
 
 func statusIcon(s task.Status) string {
 	switch s {
-	case task.Backlog:
+	case task.Todo:
 		return "󰁍"
 	case task.Blocked:
 		return "󰹆"
 	case task.Paused:
 		return "󰏤"
-	case task.InProgress:
+	case task.Active:
 		return "󰁔"
-	case task.Done:
+	case task.Complete:
 		return "✓"
+    case task.Abandoned:
+        return "x"
 	default:
 		return ""
 	}

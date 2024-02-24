@@ -14,21 +14,21 @@ func (m EditMsg) String() string {
     return fmt.Sprintf("edit task %s", m.Id)
 }
 
-func newEditMsg(id string) tea.Cmd {
+func editMsg(id string) tea.Cmd {
     return func() tea.Msg {
         return EditMsg{Id: id}
     }
 }
 
-type AddMsg struct {}
+type NewMsg struct {}
 
-func (m AddMsg) String() string {
+func (m NewMsg) String() string {
     return "add task"
 }
 
-func newAddMsg() tea.Cmd {
+func newMsg() tea.Cmd {
     return func() tea.Msg {
-        return AddMsg{}
+        return NewMsg{}
     }
 }
 

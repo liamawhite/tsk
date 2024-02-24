@@ -51,7 +51,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
 
     // Handle messages from the task lister
-	case list.AddMsg:
+	case list.NewMsg:
 		m.mode = taskEdit
 		m.edit = edit.New(edit.AddPopulator(), edit.Persister(m.client))
 		return m, m.edit.Init()
