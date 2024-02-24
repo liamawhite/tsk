@@ -65,7 +65,7 @@ func (m Model[T]) View() string {
 
     slog.Debug("rendering titled table", "width", m.table.Width())
     return lipgloss.JoinVertical(lipgloss.Left,
-        m.styles.Title.Width(m.table.Width()).Render(m.title),
+        m.styles.Title.Render(m.title),
         m.table.View(),
     )
 }

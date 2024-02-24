@@ -47,9 +47,10 @@ func (m Model) buildTable() titledtable.Model[task.Task] {
 		titledtable.WithTitle[task.Task]("Tasks"),
 		titledtable.WithTitleStyle[task.Task](titledtable.Styles[task.Task]{
 			Title: lipgloss.NewStyle().
-				Margin(0, 1).
-				Border(lipgloss.NormalBorder(), false, false, true, false).
-				BorderForeground(lipgloss.Color(theme.Subtext0().Hex)),
+				Margin(0, 1, 1, 1).
+                Padding(0, 1).
+                Background(lipgloss.Color(theme.Blue().Hex)).
+                Foreground(lipgloss.Color(theme.Crust().Hex)),
 		}),
 	)
 }
