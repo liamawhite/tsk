@@ -3,7 +3,6 @@ package task
 import (
 	"time"
 
-	"github.com/liamawhite/jsondb"
 	"github.com/teambition/rrule-go"
 )
 
@@ -44,32 +43,3 @@ type Task struct {
 	ProjectId *string
 }
 
-// This is pass-through for now, but expect this to also support caching and additional list filtering in the future.
-func NewClient(persistenceDir string) (*Client, error) {
-	db, err := jsondb.NewFS[Task](persistenceDir)
-	if err != nil {
-		return nil, err
-	}
-	return &Client{db: db}, nil
-}
-
-type Client struct {
-	db jsondb.Client[Task]
-}
-
-func (c *Client) Get(id string) (Task, error) {
-    return c.db.Read(id)
-}
-
-// Idempotent based on the task's ID.
-func (c *Client) Put(task Task) error {
-    return c.db.Write(task.Id, task)
-}
-
-func (c *Client) Delete(id string) error {
-    return c.db.Delete(id)
-}
-
-func (c *Client) List() ([]Task, error) {
-    return c.db.List()
-}

@@ -7,22 +7,21 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/liamawhite/tsk/pkg/models/components/titledtable"
-	"github.com/liamawhite/tsk/pkg/models/tasks/edit"
 	"github.com/liamawhite/tsk/pkg/task"
 )
 
 const name = "tasks/list"
 
-func New(lister tea.Cmd, deleter func(string) tea.Cmd) Model {
+func New(client *task.Client) Model {
     m := Model{
         // hardcode these for now
         width:  80,
         height: 20,
 
+        client:  client,
+
 		keys:    keyMap,
 		tasks:   []task.Task{},
-		lister:  lister,
-		deleter: deleter,
 	}
     m.table = m.buildTable()
     return m
@@ -33,15 +32,16 @@ type Model struct {
     height int
 	keys KeyMap
 
+    client *task.Client
+
 	tasks []task.Task
 	table titledtable.Model[task.Task]
+    
 
-	lister  tea.Cmd
-	deleter func(string) tea.Cmd
 }
 
 func (m Model) Init() tea.Cmd {
-	return m.lister
+	return m.client.List()
 }
 
 func (m *Model) Focus() {
@@ -53,7 +53,7 @@ func (m *Model) Blur() {
 }
 
 func (m Model) Refresh() tea.Cmd {
-	return m.lister
+	return m.client.List()
 }
 
 func (m Model) SelectedTask() string {
@@ -67,11 +67,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Add):
-			return m, func() tea.Msg { return AddMsg{} }
+			return m, newAddMsg() 
 		case key.Matches(msg, m.keys.Edit):
-			return m, func() tea.Msg { return EditMsg{Id: m.SelectedTask()} }
+            return m, newEditMsg(m.SelectedTask())  
 		case key.Matches(msg, m.keys.Delete):
-			return m, m.deleter(m.SelectedTask())
+			return m, m.client.Delete(m.SelectedTask())
 		}
 	}
 
@@ -79,13 +79,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	// Indicates that we have a new list of tasks to display
-	case ListTasksMsg:
-		m.tasks = msg.tasks
+	case task.ListMsg:
+		m.tasks = msg.Tasks
 		m.table = m.buildTable()
 		return m, nil
 
 	// If we have deleted a task or the editor submitted a new one then fetch the new list of tasks
-	case DeletedTaskMsg, edit.SubmitMsg:
+	case task.ModifyMsg, task.DeleteMsg:
 		return m, m.Refresh()
 
 	}

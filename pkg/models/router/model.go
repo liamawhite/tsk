@@ -19,7 +19,7 @@ func NewModel(client *task.Client) tea.Model {
         keys:   keyMap,
         client: client,
 
-        list: list.New(list.NewTaskLister(client), list.NewTaskDeleter(client)),
+        list: list.New(client),
         // edit is populated when the user wants to edit a task
 	}
 }
@@ -53,17 +53,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     // Handle messages from the task lister
 	case list.AddMsg:
 		m.mode = taskEdit
-		m.edit = edit.New(edit.NewAddPopulator(), edit.NewPersister(m.client))
+		m.edit = edit.New(edit.AddPopulator(), edit.Persister(m.client))
 		return m, m.edit.Init()
 	case list.EditMsg:
 		m.mode = taskEdit
-		m.edit = edit.New(edit.NewEditPopulator(m.client, msg.Id), edit.NewPersister(m.client))
+		m.edit = edit.New(edit.EditPopulator(m.client, msg.Id), edit.Persister(m.client))
 		return m, m.edit.Init()
 
     // Handle messages from the task editor
 	case edit.CancelMsg, edit.SubmitMsg:
 		m.mode = taskList
-        return m, m.list.Refresh()
+        return m, nil 
 	}
 
     // Route messages to the appropriate sub-model

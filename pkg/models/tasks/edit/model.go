@@ -35,8 +35,9 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	slog.Debug("received msg", "model", name, "msg", msg, "msgType", fmt.Sprintf("%T", msg))
 
-	// Populate task is only ever called on Init so we can safely call form init here
-	if msg, ok := msg.(populatorMsg); ok {
+    // If a task is retrieved, and we get routed the message, assume
+    // it's a request to add/edit a task
+	if msg, ok := msg.(task.GetMsg); ok {
 		if msg.Error != nil {
 			return m, Abort(msg.Error)
 		}
@@ -48,7 +49,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// If the form is done, we can write to the database, then broadcast
 	if m.form.State == huh.StateCompleted {
 		slog.Info("form completed", "model", name)
-		return m, m.persister(m.task())
+		return m, Submit(m.persister(m.task()))
 	}
 
 	// If the form is aborted, we broadcast the abort message
@@ -61,7 +62,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) task() task.Task {
-
 	return task.Task{
 		Id:     m.id,
 		Name:   m.form.GetString(taskKey),

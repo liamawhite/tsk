@@ -4,43 +4,31 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/liamawhite/tsk/pkg/task"
 )
 
 type EditMsg struct {
-	Id string
+    Id string
 }
 
-type AddMsg struct{}
-
-type DeletedTaskMsg struct {
-	Error error
+func (m EditMsg) String() string {
+    return fmt.Sprintf("edit task %s", m.Id)
 }
 
-func NewTaskDeleter(client *task.Client) func(string) tea.Cmd {
-	return func(id string) tea.Cmd {
-		return func() tea.Msg {
-			err := client.Delete(id)
-			return DeletedTaskMsg{Error: err}
-		}
-	}
-}
-
-type ListTasksMsg struct {
-	tasks []task.Task
-	error error
-}
-
-func (l ListTasksMsg) String() string {
-    if l.error != nil {
-        return fmt.Sprintf("{error:%v}", l.error)
+func newEditMsg(id string) tea.Cmd {
+    return func() tea.Msg {
+        return EditMsg{Id: id}
     }
-    return fmt.Sprintf("{tasks:%v}", len(l.tasks))
 }
 
-func NewTaskLister(client *task.Client) tea.Cmd {
-	return func() tea.Msg {
-		tasks, err := client.List()
-		return ListTasksMsg{tasks: tasks, error: err}
-	}
+type AddMsg struct {}
+
+func (m AddMsg) String() string {
+    return "add task"
 }
+
+func newAddMsg() tea.Cmd {
+    return func() tea.Msg {
+        return AddMsg{}
+    }
+}
+
