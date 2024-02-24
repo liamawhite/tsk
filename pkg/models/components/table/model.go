@@ -6,19 +6,18 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/mattn/go-runewidth"
 )
 
 // Model defines a state for the table widget.
 type Model[T any] struct {
 	KeyMap KeyMap
 
+    hideHeaders bool
 	cols   []Column
 	rows   []Row[T]
 	cursor int
 	focus  bool
-	styles Styles
+	styles Styles[T]
 
 	viewport viewport.Model
 	start    int
@@ -36,7 +35,7 @@ type Column struct {
 }
 
 // SetStyles sets the table styles.
-func (m *Model[T]) SetStyles(s Styles) {
+func (m *Model[T]) SetStyles(s Styles[T]) {
 	m.styles = s
 	m.UpdateViewport()
 }
@@ -53,7 +52,7 @@ func New[T any](opts ...Option[T]) Model[T] {
 		viewport: viewport.New(0, 20),
 
 		KeyMap: DefaultKeyMap(),
-		styles: DefaultStyles(),
+		styles: DefaultStyles[T](),
 	}
 
 	for _, opt := range opts {
@@ -70,6 +69,12 @@ func WithColumns[T any](cols []Column) Option[T] {
 	return func(m *Model[T]) {
 		m.cols = cols
 	}
+}
+
+func WithHiddenHeaders[T any](h bool) Option[T] {
+    return func(m *Model[T]) {
+        m.hideHeaders = h
+    }
 }
 
 // WithRows sets the table rows (data).
@@ -101,7 +106,7 @@ func WithFocused[T any](f bool) Option[T] {
 }
 
 // WithStyles sets the table styles.
-func WithStyles[T any](s Styles) Option[T]{
+func WithStyles[T any](s Styles[T]) Option[T]{
 	return func(m *Model[T]) {
 		m.styles = s
 	}
@@ -169,35 +174,6 @@ func (m *Model[T]) Focus() {
 func (m *Model[T]) Blur() {
 	m.focus = false
 	m.UpdateViewport()
-}
-
-// View renders the component.
-func (m Model[T]) View() string {
-	return m.headersView() + "\n" + m.viewport.View()
-}
-
-// UpdateViewport updates the list content based on the previously defined
-// columns and rows.
-func (m *Model[T]) UpdateViewport() {
-    m.Sort()
-	renderedRows := make([]string, 0, len(m.rows))
-
-	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
-	// Constant runtime, independent of number of rows in a table.
-	// Limits the number of renderedRows to a maximum of 2*m.viewport.Height
-	if m.cursor >= 0 {
-		m.start = clamp(m.cursor-m.viewport.Height, 0, m.cursor)
-	} else {
-		m.start = 0
-	}
-	m.end = clamp(m.cursor+m.viewport.Height, m.cursor, len(m.rows))
-	for i := m.start; i < m.end; i++ {
-		renderedRows = append(renderedRows, m.renderRow(i))
-	}
-
-	m.viewport.SetContent(
-		lipgloss.JoinVertical(lipgloss.Left, renderedRows...),
-	)
 }
 
 // SelectedRow returns the selected row.
@@ -306,31 +282,4 @@ func (m *Model[T]) Sort() {
     }
     sort.Slice(m.rows, func(i, j int) bool { return m.sorter(m.rows[i].Data, m.rows[j].Data) })
     m.sorted = true
-}
-
-func (m Model[T]) headersView() string {
-	var s = make([]string, 0, len(m.cols))
-	for _, col := range m.cols {
-		style := lipgloss.NewStyle().Width(col.Width).MaxWidth(col.Width).Inline(true)
-		renderedCell := style.Render(runewidth.Truncate(col.Title, col.Width, "…"))
-		s = append(s, m.styles.Header.Render(renderedCell))
-	}
-	return lipgloss.JoinHorizontal(lipgloss.Left, s...)
-}
-
-func (m *Model[T]) renderRow(rowIndex int) string {
-	var s = make([]string, 0, len(m.cols))
-	for i, value := range m.rows[rowIndex].Render() {
-		style := lipgloss.NewStyle().Width(m.cols[i].Width).MaxWidth(m.cols[i].Width).Inline(true)
-		renderedCell := m.styles.Cell.Render(style.Render(runewidth.Truncate(value, m.cols[i].Width, "…")))
-		s = append(s, renderedCell)
-	}
-
-	row := lipgloss.JoinHorizontal(lipgloss.Left, s...)
-
-	if rowIndex == m.cursor {
-		return m.styles.Selected.Render(row)
-	}
-
-	return row
 }

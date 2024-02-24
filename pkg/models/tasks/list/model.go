@@ -9,7 +9,6 @@ import (
 	"github.com/liamawhite/tsk/pkg/models/components/table"
 	"github.com/liamawhite/tsk/pkg/models/tasks/edit"
 	"github.com/liamawhite/tsk/pkg/task"
-	"github.com/samber/lo"
 )
 
 const name = "tasks/list"
@@ -95,23 +94,3 @@ func (m Model) routing(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
-	return m.table.View()
-}
-
-func buildTable(tasks []task.Task) table.Model[task.Task] {
-	return table.New[task.Task](
-		table.WithColumns[task.Task]([]table.Column{
-            {Title: "Status", Width: 15},
-            {Title: "Task", Width: 20},
-		}),
-		table.WithRows(lo.Map(tasks, func(t task.Task, _ int) table.Row[task.Task] {
-			return table.Row[task.Task]{Id: t.Id, Data: t, Renderer: func(t task.Task) []string {
-				return []string{t.Status.String(), t.Name}
-			}}
-		})),
-        table.WithSort(func(a task.Task, b task.Task) bool{
-            return a.Status < b.Status
-        }),
-	)
-}
