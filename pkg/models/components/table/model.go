@@ -1,6 +1,8 @@
 package table
 
 import (
+	"sort"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,6 +23,9 @@ type Model[T any] struct {
 	viewport viewport.Model
 	start    int
 	end      int
+
+    sorter func(a, b T) bool
+    sorted bool
 }
 
 
@@ -54,8 +59,8 @@ func New[T any](opts ...Option[T]) Model[T] {
 	for _, opt := range opts {
 		opt(&m)
 	}
-
-	m.UpdateViewport()
+    
+    m.UpdateViewport()
 
 	return m
 }
@@ -107,6 +112,12 @@ func WithKeyMap[T any](km KeyMap) Option[T] {
 	return func(m *Model[T]) {
 		m.KeyMap = km
 	}
+}
+
+func WithSort[T any](sorter func(a, b T) bool) Option[T] {
+    return func(m *Model[T]) {
+        m.sorter = sorter
+    }
 }
 
 // Update is the Bubble Tea update loop.
@@ -168,6 +179,7 @@ func (m Model[T]) View() string {
 // UpdateViewport updates the list content based on the previously defined
 // columns and rows.
 func (m *Model[T]) UpdateViewport() {
+    m.Sort()
 	renderedRows := make([]string, 0, len(m.rows))
 
 	// Render only rows from: m.cursor-m.viewport.Height to: m.cursor+m.viewport.Height
@@ -202,6 +214,7 @@ func (m Model[T]) Rows() []Row[T] {
 // SetRows sets a new rows state.
 func (m *Model[T]) SetRows(r []Row[T]) {
 	m.rows = r
+    m.sorted = false
 	m.UpdateViewport()
 }
 
@@ -284,6 +297,15 @@ func (m *Model[T]) GotoTop() {
 // GotoBottom moves the selection to the last row.
 func (m *Model[T]) GotoBottom() {
 	m.MoveDown(len(m.rows))
+}
+
+// Sort sorts the table based on the current sorter function.
+func (m *Model[T]) Sort() {
+    if m.sorted || m.sorter == nil {
+        return
+    }
+    sort.Slice(m.rows, func(i, j int) bool { return m.sorter(m.rows[i].Data, m.rows[j].Data) })
+    m.sorted = true
 }
 
 func (m Model[T]) headersView() string {

@@ -110,5 +110,8 @@ func buildTable(tasks []task.Task) table.Model[task.Task] {
 				return []string{t.Status.String(), t.Name}
 			}}
 		})),
+        table.WithSort(func(a task.Task, b task.Task) bool{
+            return a.Status < b.Status
+        }),
 	)
 }
