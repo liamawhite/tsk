@@ -38,6 +38,7 @@ type CancelMsg struct{
     Error error
 }
 
+// Broadcasts the cancel message with an optional error
 func Abort(err error) tea.Cmd {
     return func() tea.Msg {
         if err != nil {

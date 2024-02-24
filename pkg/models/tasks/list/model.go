@@ -6,7 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/liamawhite/tsk/pkg/models/components/table"
+	"github.com/liamawhite/tsk/pkg/models/components/titledtable"
 	"github.com/liamawhite/tsk/pkg/models/tasks/edit"
 	"github.com/liamawhite/tsk/pkg/task"
 )
@@ -27,7 +27,7 @@ type Model struct {
 	keys KeyMap
 
 	tasks []task.Task
-	table table.Model[task.Task]
+	table titledtable.Model[task.Task]
 
 	lister  tea.Cmd
 	deleter func(string) tea.Cmd

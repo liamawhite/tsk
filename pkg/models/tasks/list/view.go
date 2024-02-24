@@ -4,6 +4,7 @@ import (
 	catppuccin "github.com/catppuccin/go"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/liamawhite/tsk/pkg/models/components/table"
+	"github.com/liamawhite/tsk/pkg/models/components/titledtable"
 	"github.com/liamawhite/tsk/pkg/task"
 	"github.com/samber/lo"
 )
@@ -19,8 +20,8 @@ const (
     colTask = "Task"
 )
 
-func buildTable(tasks []task.Task) table.Model[task.Task] {
-	return table.New[task.Task](
+func buildTable(tasks []task.Task) titledtable.Model[task.Task] {
+    tbl := table.New[task.Task](
 		table.WithColumns[task.Task]([]table.Column{
 			{Title: colStatus, Width: 1},
 			{Title: colTask, Width: 20},
@@ -40,6 +41,7 @@ func buildTable(tasks []task.Task) table.Model[task.Task] {
 			Selected: table.DefaultStyles[task.Task]().Selected,
 		}),
 	)
+    return titledtable.New[task.Task](tbl, titledtable.WithTitle[task.Task]("Tasks"))
 }
 
 func conditionalFormat(t task.Task, column string) lipgloss.Style {
